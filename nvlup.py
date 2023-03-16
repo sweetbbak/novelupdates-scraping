@@ -107,11 +107,23 @@ def get_search_html(count):
     return soup
 
 
-def get_search(sort, order, status, count):
+listings_sort = ['Chapters', 'Frequency', 'Rank', 'Rating', 'Readers', 'Reviews', 'Title', 'Last updated']
+listings_order = ['Ascending', 'Descending']
+listings_status = ['All', 'Completed', 'Ongoing', 'Hiatus']
+
+
+def get_search():
+    sort = choose(listings_sort)
+    sort = listings_sort.index(f'{sort}')
+    order = choose(listings_order)
+    order = listings_order.index(f'{order}')
+    status = choose(listings_status)
+    status = listings_status.index(f'{status}')
     url = f"{nvlup}/novelslisting/?sort={sort}&order={order}&status={status}"
     response = requests.get(url, headers=headers)
     soup = bs(response.text, 'html.parser')
-    return soup
+    parsed = parse_novel(soup)
+    return parsed
 
 
 def series_ranking(sort_ranking):
@@ -124,9 +136,9 @@ def series_ranking(sort_ranking):
     url_rank = f"{url}/{ranks[sort]}"
     print(url_rank)
     print(title)
-    # soup = get_html(url_rank)
-    # parse_rank = parse_novel(soup)
-    # to_json(parse_rank, title)
+    soup = get_html(url_rank)
+    parse_rank = parse_novel(soup)
+    to_json(parse_rank, title)
 
 
 def parse_novel(html):
@@ -186,13 +198,31 @@ def write(placeholder: str=None):
         return result.read().replace(r"\n", "\n").strip()
 
 
+menu1 = ['series ranking', 'series listing']
+menu2 = [
+    'weekly',
+    'popular (monthly)',
+    'activity (weekly)',
+    'popularity (all)',
+    'activity (all)'
+]
+
 if args.search is None:
-    user_in = gum_input("search for a novel: ")
-    if user_in is not None:
-        print(user_in.replace(" ", "+"))
-        series_ranking(0)
+    # user_in = gum_input("search for a novel: ")
+    # if user_in is not None:
+    # print(user_in.replace(" ", "+"))
+    # choice1 = choose(menu2)
+    # print(choice1)
+    search = get_search()
+    to_json(search, "listings.json")
 else:
-    user_in = args.search.strip().replace(" ", "+")    
-    print(user_in)
+    # user_in = args.search.strip().replace(" ", "+")    
+    # print(user_in)
+    search = get_search()
+    to_json(search, "listings.json")
+    with open("listings.json", "r") as f:
+        contents = json.load(f)
+    li = [item.get('title') for item in contents]
+    choose(li)
 
 # get_new_listings()
